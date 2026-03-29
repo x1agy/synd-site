@@ -1,3 +1,5 @@
+import type { Dispatch, SetStateAction } from 'react';
+
 type UserDataType = {
   username: string;
   email: string;
@@ -17,4 +19,9 @@ type UserDataType = {
   }[];
 };
 
-export type { UserDataType };
+type UserContextType = {
+  data: UserDataType | undefined;
+  setData: Dispatch<SetStateAction<UserDataType | undefined>>;
+};
+
+export type { UserDataType, UserContextType };

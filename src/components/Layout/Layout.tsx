@@ -2,7 +2,7 @@ import { Layout as AntLayout, Avatar, Button, Flex } from 'antd';
 import { type FC } from 'react';
 import { Link, Outlet } from 'react-router';
 import styles from './index.module.scss';
-import useUserData from '../../../hooks/useUserData';
+import useUserData from '../../hooks/useUserData';
 
 const { Header, Footer, Content } = AntLayout;
 

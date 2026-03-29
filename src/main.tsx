@@ -2,11 +2,12 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
-import Layout from './components/ui/Layout/Layout.tsx';
+import Layout from './components/Layout/Layout.tsx';
 import Main from './routes/main/Main.tsx';
 import { ConfigProvider } from 'antd';
 
 import './style.scss';
+import UserProvider from './context/UserProvider.tsx';
 
 const router = createBrowserRouter([
   {
@@ -29,7 +30,9 @@ createRoot(document.getElementById('root')!).render(
         },
       }}
     >
-      <RouterProvider router={router} />
+      <UserProvider>
+        <RouterProvider router={router} />
+      </UserProvider>
     </ConfigProvider>
   </StrictMode>
 );

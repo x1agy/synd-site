@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { CLIENT_ID, REDIRECT_URI, SYND_ID } from '../constants/env';
 import type { UserDataType } from '../types/user';
 import { isUserDataValid } from '../utils/user';
+import { useUser } from '../context/UserContext';
 
 /**
  * ### Хук возвращает всегда валидную userData
@@ -9,7 +10,7 @@ import { isUserDataValid } from '../utils/user';
  * @returns [userData, fetchUserData]
  */
 const useUserData = () => {
-  const [userData, setUserData] = useState<UserDataType | undefined>();
+  const { data, setData } = useUser();
 
   const handleAuth = () => {
     const params = new URLSearchParams({
@@ -63,19 +64,11 @@ const useUserData = () => {
   };
 
   useEffect(() => {
-    const sessionUserData = JSON.parse(
-      sessionStorage.getItem('user_data') ?? '{}'
-    ) as UserDataType | undefined;
     const hash = window.location.hash;
     const func = async () => {
-      if (!userData && isUserDataValid(sessionUserData)) {
-        setUserData(sessionUserData);
-        return;
-      }
+      if (isUserDataValid(data)) return;
 
-      if (isUserDataValid(userData)) return;
-
-      if (hash || !sessionUserData) {
+      if (hash) {
         const params = new URLSearchParams(hash.substring(1));
         const accessToken = params.get('access_token');
         const expiresIn = params.get('expires_in');
@@ -91,7 +84,7 @@ const useUserData = () => {
 
         if (accessToken) {
           const userData = await fetchUserData(accessToken);
-          setUserData(userData);
+          setData(userData);
           sessionStorage.setItem('user_data', JSON.stringify(userData ?? {}));
 
           window.history.replaceState(
@@ -104,9 +97,9 @@ const useUserData = () => {
     };
 
     func();
-  }, []);
+  }, [data, setData]);
 
-  return [userData, handleAuth] as const;
+  return [data, handleAuth] as const;
 };
 
 export default useUserData;
