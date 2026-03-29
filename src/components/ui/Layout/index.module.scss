@@ -1,0 +1,23 @@
+.layout {
+  height: 100vh;
+
+  background: transparent;
+}
+
+.header {
+  padding: 0;
+
+  .headerContainer {
+    background-color: #0b0b10;
+    padding: 0 16px;
+
+    .logo {
+      font-size: 24px;
+      font-weight: 900;
+    }
+
+    .avatarButton {
+      padding: 0;
+    }
+  }
+}

@@ -1,0 +1,3 @@
+const BACKGROUND_DEFAULT = '0b0b10';
+
+export { BACKGROUND_DEFAULT };

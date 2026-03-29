@@ -1,0 +1,20 @@
+type UserDataType = {
+  username: string;
+  email: string;
+  id: string;
+  avatar: string;
+  nickname: string;
+  isOnServer: boolean;
+  guilds: {
+    id: string;
+    name: string;
+    icon?: string;
+    banner?: string;
+    owner: boolean;
+    permissions: number;
+    permissions_new: string;
+    features: string[];
+  }[];
+};
+
+export type { UserDataType };
