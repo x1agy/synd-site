@@ -7,6 +7,7 @@ type UserDataType = {
   avatar: string;
   nickname: string;
   isOnServer: boolean;
+  roles: string[];
   guilds: {
     id: string;
     name: string;

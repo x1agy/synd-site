@@ -1,6 +1,6 @@
 import { Layout as AntLayout, Avatar, Button, Flex } from 'antd';
 import { type FC } from 'react';
-import { Link, Outlet } from 'react-router';
+import { Link, Outlet, useNavigate } from 'react-router';
 import styles from './index.module.scss';
 import useUserData from '../../hooks/useUserData';
 
@@ -8,6 +8,7 @@ const { Header, Footer, Content } = AntLayout;
 
 const Layout: FC = () => {
   const [data, fetchData] = useUserData();
+  const navigate = useNavigate();
 
   return (
     <AntLayout className={styles.layout}>
@@ -22,7 +23,11 @@ const Layout: FC = () => {
           </Link>
 
           {data ? (
-            <Button className={styles.avatarButton}>
+            <Button
+              className={styles.avatarButton}
+              onClick={() => navigate('/profile')}
+              role='link'
+            >
               <Avatar src={data.avatar} />
             </Button>
           ) : (

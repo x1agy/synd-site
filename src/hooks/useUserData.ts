@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { CLIENT_ID, REDIRECT_URI, SYND_ID } from '../constants/env';
 import type { UserDataType } from '../types/user';
 import { isUserDataValid } from '../utils/user';
@@ -11,8 +11,10 @@ import { useUser } from '../context/UserContext';
  */
 const useUserData = () => {
   const { data, setData } = useUser();
+  const isFetching = useRef(false);
 
   const handleAuth = () => {
+    if (isFetching.current) return;
     const params = new URLSearchParams({
       client_id: CLIENT_ID,
       redirect_uri: REDIRECT_URI,
@@ -26,21 +28,22 @@ const useUserData = () => {
     token: string
   ): Promise<UserDataType | undefined> => {
     try {
-      const userRes = await fetch('https://discord.com/api/users/@me', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const userData = await userRes.json();
-
-      const guildMemberRes = await fetch(
-        `https://discord.com/api/users/@me/guilds/${SYND_ID}/member`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      const guilds = await (
-        await fetch(`https://discord.com/api/users/@me/guilds`, {
+      const [userRes, guildMemberRes, guildsRes] = await Promise.all([
+        fetch('https://discord.com/api/users/@me', {
           headers: { Authorization: `Bearer ${token}` },
-        })
-      ).json();
+        }),
+        fetch(`https://discord.com/api/users/@me/guilds/${SYND_ID}/member`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch('https://discord.com/api/users/@me/guilds', {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+
+      if (!userRes.ok) throw new Error('Failed to fetch user');
+
+      const userData = await userRes.json();
+      const guilds = await guildsRes.json();
 
       let memberData = null;
       if (guildMemberRes.ok) {
@@ -56,22 +59,29 @@ const useUserData = () => {
           : `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png`,
         nickname: memberData?.nick || userData.username,
         isOnServer: !!memberData,
+        roles: (memberData.roles ?? []) as string[],
         guilds,
       };
     } catch (err) {
       console.error('Ошибка при получении данных:', err);
+      return undefined;
     }
   };
 
   useEffect(() => {
     const hash = window.location.hash;
-    const func = async () => {
-      if (isUserDataValid(data)) return;
+
+    const init = async () => {
+      if (isUserDataValid(data) || isFetching.current) return;
 
       if (hash) {
         const params = new URLSearchParams(hash.substring(1));
         const accessToken = params.get('access_token');
         const expiresIn = params.get('expires_in');
+
+        if (!accessToken) return;
+
+        isFetching.current = true;
 
         localStorage.setItem(
           'user_auth',
@@ -82,21 +92,23 @@ const useUserData = () => {
           })
         );
 
-        if (accessToken) {
-          const userData = await fetchUserData(accessToken);
-          setData(userData);
-          sessionStorage.setItem('user_data', JSON.stringify(userData ?? {}));
+        const userData = await fetchUserData(accessToken);
 
-          window.history.replaceState(
-            {},
-            document.title,
-            window.location.pathname
-          );
+        if (userData) {
+          setData(userData);
+          sessionStorage.setItem('user_data', JSON.stringify(userData));
         }
+
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname
+        );
+        isFetching.current = false;
       }
     };
 
-    func();
+    init();
   }, [data, setData]);
 
   return [data, handleAuth] as const;

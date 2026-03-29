@@ -1,0 +1,18 @@
+.holder {
+  max-width: 1024px;
+  margin: 32px auto;
+
+  .block {
+    background-color: #14141c50;
+    padding: 16px;
+    border-radius: 5px;
+  }
+
+  .infoBlock {
+    width: 100%;
+    :global(.ant-typography) {
+      font-size: 24px;
+      margin: 0;
+    }
+  }
+}

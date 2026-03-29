@@ -8,12 +8,16 @@ import { ConfigProvider } from 'antd';
 
 import './style.scss';
 import UserProvider from './context/UserProvider.tsx';
+import Profile from './routes/profile/Profile.tsx';
 
 const router = createBrowserRouter([
   {
     path: '/',
     element: <Layout />,
-    children: [{ index: true, element: <Main /> }],
+    children: [
+      { index: true, element: <Main /> },
+      { path: '/profile', element: <Profile /> },
+    ],
   },
 ]);
 
