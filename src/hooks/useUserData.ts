@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { CLIENT_ID, REDIRECT_URI, SYND_ID } from '../constants/env';
+import { CLIENT_ID, SYND_ID } from '../constants/env';
 import type { UserDataType } from '../types/user';
 import { isUserDataValid } from '../utils/user';
 import { useUser } from '../context/UserContext';
@@ -17,7 +17,7 @@ const useUserData = () => {
     if (isFetching.current) return;
     const params = new URLSearchParams({
       client_id: CLIENT_ID,
-      redirect_uri: REDIRECT_URI,
+      redirect_uri: document.URL,
       response_type: 'token',
       scope: ['identify', 'email', 'guilds', 'guilds.members.read'].join(' '),
     });
