@@ -89,11 +89,7 @@ const Profile = () => {
     <Flex vertical gap={16} className={styles.holder}>
       <Flex gap={16}>
         <Flex className={styles.block}>
-          <Image
-            src={userData.avatar}
-            placeholder
-            preview={{ scaleStep: 5, minScale: 5 }}
-          />
+          <Image src={userData.avatar} placeholder />
         </Flex>
         <Flex
           vertical

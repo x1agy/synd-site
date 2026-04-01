@@ -8,7 +8,6 @@ export const useSkills = () => {
       const callbackName = `cb_${Date.now()}`;
 
       (window as any)[callbackName] = (data: { skills: string[] }) => {
-        console.log(data);
         resolve(data.skills ?? []);
         delete (window as any)[callbackName];
         document.getElementById(callbackName)?.remove();

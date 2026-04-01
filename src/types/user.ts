@@ -8,6 +8,7 @@ type UserDataType = {
   nickname: string;
   isOnServer: boolean;
   roles: string[];
+  fullData: unknown;
   guilds: {
     id: string;
     name: string;

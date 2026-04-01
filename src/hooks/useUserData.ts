@@ -61,6 +61,7 @@ const useUserData = () => {
         isOnServer: !!memberData,
         roles: (memberData.roles ?? []) as string[],
         guilds,
+        fullData: { userRes, guildMemberRes, guildsRes },
       };
     } catch (err) {
       console.error('Ошибка при получении данных:', err);

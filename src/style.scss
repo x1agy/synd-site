@@ -1,15 +1,15 @@
 html,
 body {
   background-color: #0b0b10;
-  color: #7277b8;
-  max-width: 1440px;
-  margin: 0 auto;
   background-image: url('../public/logo.png');
   background-repeat: no-repeat;
   background-position: center center;
-  min-height: 100vh;
   background-size: contain;
   background-attachment: fixed;
+  color: #7277b8;
+  max-width: 1440px;
+  margin: 0 auto;
+  min-height: 100vh;
 }
 
 * {

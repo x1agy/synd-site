@@ -28,7 +28,7 @@ const Layout: FC = () => {
               onClick={() => navigate('/profile')}
               role='link'
             >
-              <Avatar src={data.avatar} />
+              <Avatar src={data.avatar} shape='square' />
             </Button>
           ) : (
             <div
@@ -41,10 +41,10 @@ const Layout: FC = () => {
           )}
         </Flex>
       </Header>
-      <Content className={styles.layoutContent}>
+      <Content>
         <Outlet />
       </Content>
-      <Footer>{null}</Footer>
+      <Footer className={styles.footerContainer}>{null}</Footer>
     </AntLayout>
   );
 };
