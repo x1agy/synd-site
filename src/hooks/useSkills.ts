@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { useCallback } from 'react';
 import { SKILLS_SCRIPT } from '../constants/env';
 
 export const useSkills = () => {
-  const fetchSkills = (username: string): Promise<string[]> => {
+  const fetchSkills = useCallback((username: string): Promise<string[]> => {
     return new Promise((resolve) => {
       const callbackName = `cb_${Date.now()}`;
 
@@ -20,7 +21,7 @@ export const useSkills = () => {
       )}&callback=${callbackName}`;
       document.body.appendChild(script);
     });
-  };
+  }, []);
 
   const saveSkills = async (
     username: string,

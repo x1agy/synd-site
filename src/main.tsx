@@ -31,6 +31,7 @@ createRoot(document.getElementById('root')!).render(
           colorBgBase: '#0a0a0e',
           colorTextBase: '#7277b8',
           colorLink: '#7277b8',
+          borderRadius: 10,
         },
       }}
     >

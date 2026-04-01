@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { departmentColors, departments, roles } from '../../constants/discord';
 import { useSkills } from '../../hooks/useSkills';
 import { skills as ALL_SKILLS } from '../../constants/google';
@@ -7,6 +7,7 @@ import { useUser } from '../../context/UserContext';
 import { useNavigate } from 'react-router';
 
 import styles from './index.module.scss';
+import { getSkillColor } from '../../utils/color';
 
 type SkillMap = Record<string, number | null>;
 
@@ -16,12 +17,17 @@ const Profile = () => {
   const { data: userData } = useUser();
   const { fetchSkills, saveSkills } = useSkills();
   const navigate = useNavigate();
-  const dsNick = userData?.nickname.match(nickReg)?.[0];
+  const dsNick = useMemo(
+    () => userData?.nickname.match(nickReg)?.[0],
+    [userData?.nickname]
+  );
 
   const [modalOpen, setModalOpen] = useState(false);
   const [skillLevels, setSkillLevels] = useState<SkillMap>({});
   const [saved, setSaved] = useState<SkillMap>({});
   const [loading, setLoading] = useState(false);
+
+  const [isEditMode, setIsEditMode] = useState(false);
 
   useEffect(() => {
     if (!userData || !userData.isOnServer) {
@@ -34,7 +40,6 @@ const Profile = () => {
     if (userData?.nickname) {
       fetchSkills(dsNick ?? 'null').then((raw: string[]) => {
         const map: SkillMap = {};
-        console.log({ raw });
         raw.forEach((cell, i) => {
           const [name, level] = [ALL_SKILLS[i], cell];
           map[name] = Number(level);
@@ -42,9 +47,7 @@ const Profile = () => {
         setSaved(map);
       });
     }
-  }, [userData?.nickname]);
-
-  console.log({ saved });
+  }, [dsNick, fetchSkills, userData?.nickname]);
 
   if (!userData) return null;
 
@@ -66,6 +69,10 @@ const Profile = () => {
   };
 
   const handleSave = async () => {
+    if (!isEditMode) {
+      setIsEditMode((prev) => !prev);
+      return;
+    }
     setLoading(true);
     const row = ALL_SKILLS.map((skill) => {
       const level = skillLevels[skill];
@@ -75,15 +82,18 @@ const Profile = () => {
     setSaved({ ...skillLevels });
     setLoading(false);
     setModalOpen(false);
+    setIsEditMode((prev) => !prev);
   };
-
-  const savedEntries = Object.entries(saved).filter(([, v]) => v != null);
 
   return (
     <Flex vertical gap={16} className={styles.holder}>
       <Flex gap={16}>
         <Flex className={styles.block}>
-          <Image src={userData.avatar} placeholder />
+          <Image
+            src={userData.avatar}
+            placeholder
+            preview={{ scaleStep: 5, minScale: 5 }}
+          />
         </Flex>
         <Flex
           vertical
@@ -115,47 +125,60 @@ const Profile = () => {
           <Typography.Title level={4} style={{ margin: 0 }}>
             Навыки
           </Typography.Title>
-          <Button onClick={handleOpen}>+</Button>
+          <Button onClick={handleOpen}>Посмотреть навыки</Button>
         </Flex>
-
-        {savedEntries.length > 0 && (
-          <Flex vertical gap={6} className={styles.block}>
-            {savedEntries.map(([skill, level]) => (
-              <Flex key={skill} justify='space-between' align='center'>
-                <Typography.Text>{skill}</Typography.Text>
-                <Tag color='cyan'>{level}</Tag>
-              </Flex>
-            ))}
-          </Flex>
-        )}
       </Flex>
 
       <Modal
         title='Навыки'
         open={modalOpen}
         onOk={handleSave}
-        onCancel={() => setModalOpen(false)}
-        okText='Сохранить'
+        onCancel={() => {
+          setIsEditMode(false);
+          setModalOpen(false);
+        }}
+        okText={isEditMode ? 'Сохранить' : 'Обновить навыки'}
         cancelText='Отмена'
         confirmLoading={loading}
+        destroyOnHidden
+        style={{ border: '1px solid #0e5d5f', borderRadius: '10px' }}
       >
         <Flex vertical gap={10}>
-          {ALL_SKILLS.map((skill) => (
-            <Flex key={skill} justify='space-between' align='center'>
-              <Typography.Text>{skill}</Typography.Text>
-              <InputNumber
-                min={0}
-                max={5}
-                placeholder='уровень'
-                value={skillLevels[skill] ?? null}
-                defaultValue={0}
-                onChange={(val) =>
-                  setSkillLevels((prev) => ({ ...prev, [skill]: val ?? 0 }))
-                }
-                style={{ width: 90 }}
-              />
-            </Flex>
-          ))}
+          {ALL_SKILLS.filter((val) =>
+            // В режиме просмотра показываются только навыки skillLevels[val] > 0
+            !isEditMode ? Number(skillLevels[val]) > 0 : true
+          )
+            // Сортировка от большего к меньшему
+            .sort((a, b) => Number(skillLevels[b]) - Number(skillLevels[a]))
+            .map((skill) => {
+              const skillLevel = Number(skillLevels[skill] ?? null);
+              return (
+                <Flex key={skill} justify='space-between' align='center'>
+                  <Typography.Text>{skill}</Typography.Text>
+                  <InputNumber
+                    min={0}
+                    max={skill === 'Ферма' ? 9 : 5}
+                    placeholder='уровень'
+                    value={skillLevel}
+                    disabled={!isEditMode}
+                    defaultValue={0}
+                    style={{
+                      borderColor: getSkillColor(skillLevel),
+                      width: 44,
+                    }}
+                    styles={{
+                      input: {
+                        textAlign: 'center',
+                        color: getSkillColor(skillLevel),
+                      },
+                    }}
+                    onChange={(val) =>
+                      setSkillLevels((prev) => ({ ...prev, [skill]: val ?? 0 }))
+                    }
+                  />
+                </Flex>
+              );
+            })}
         </Flex>
       </Modal>
     </Flex>
