@@ -15,4 +15,8 @@ const skills = [
   'Медоварня',
 ] as const;
 
-export { skills };
+const contractsSheetsPaths = {
+  contracts: 'Отчёты',
+} as const;
+
+export { skills, contractsSheetsPaths };

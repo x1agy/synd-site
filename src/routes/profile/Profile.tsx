@@ -2,12 +2,22 @@ import { useEffect, useMemo, useState } from 'react';
 import { departmentColors, departments, roles } from '../../constants/discord';
 import { useSkills } from '../../hooks/useSkills';
 import { skills as ALL_SKILLS } from '../../constants/google';
-import { Button, Flex, Image, InputNumber, Modal, Tag, Typography } from 'antd';
+import {
+  Button,
+  Flex,
+  Image,
+  InputNumber,
+  Modal,
+  Tag,
+  Typography,
+  Input,
+} from 'antd';
 import { useUser } from '../../context/UserContext';
 import { useNavigate } from 'react-router';
+import { getSkillColor } from '../../utils/color';
+import { getLastContracts, addContract } from '../../services/contractsApi';
 
 import styles from './index.module.scss';
-import { getSkillColor } from '../../utils/color';
 
 type SkillMap = Record<string, number | null>;
 
@@ -26,6 +36,14 @@ const Profile = () => {
   const [skillLevels, setSkillLevels] = useState<SkillMap>({});
   const [saved, setSaved] = useState<SkillMap>({});
   const [loading, setLoading] = useState(false);
+
+  const [contracts, setContracts] = useState<
+    Array<{ essenceNumber: number; screenshotLink: string; timestamp: string }>
+  >([]);
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [newEssenceNumber, setNewEssenceNumber] = useState<number | null>(null);
+  const [newScreenshotLink, setNewScreenshotLink] = useState('');
+  const [adding, setAdding] = useState(false);
 
   const [isEditMode, setIsEditMode] = useState(false);
 
@@ -46,6 +64,7 @@ const Profile = () => {
         });
         setSaved(map);
       });
+      getLastContracts(dsNick ?? '').then(setContracts);
     }
   }, [dsNick, fetchSkills, userData?.nickname]);
 
@@ -85,6 +104,27 @@ const Profile = () => {
     setIsEditMode((prev) => !prev);
   };
 
+  const handleAddContract = async () => {
+    if (newEssenceNumber === null || !newScreenshotLink.trim() || !dsNick) {
+      return;
+    }
+
+    try {
+      setAdding(true);
+      await addContract(dsNick, newEssenceNumber, newScreenshotLink.trim());
+      const updatedContracts = await getLastContracts(dsNick);
+      setContracts(updatedContracts);
+      setAddModalOpen(false);
+      setNewEssenceNumber(null);
+      setNewScreenshotLink('');
+    } catch (error) {
+      console.error(error);
+      alert('Не удалось добавить контракт. Попробуйте ещё раз.');
+    } finally {
+      setAdding(false);
+    }
+  };
+
   return (
     <Flex vertical gap={16} className={styles.holder}>
       <Flex gap={16}>
@@ -122,6 +162,40 @@ const Profile = () => {
             Навыки
           </Typography.Title>
           <Button onClick={handleOpen}>Посмотреть навыки</Button>
+        </Flex>
+      </Flex>
+
+      <Flex vertical gap={16}>
+        <Flex justify='space-between' align='center' className={styles.block}>
+          <Typography.Title level={4} style={{ margin: 0 }}>
+            Последние контракты
+          </Typography.Title>
+          <Button onClick={() => setAddModalOpen(true)}>
+            Добавить контракт
+          </Button>
+        </Flex>
+        <Flex vertical gap={8} className={styles.block}>
+          {contracts.length > 0 ? (
+            contracts.map((contract, index) => (
+              <Flex key={index} justify='space-between' align='center'>
+                <Typography.Text>
+                  Эссенция: {contract.essenceNumber}
+                </Typography.Text>
+                <a
+                  href={contract.screenshotLink}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                >
+                  Скриншот
+                </a>
+                <Typography.Text type='secondary'>
+                  {contract.timestamp}
+                </Typography.Text>
+              </Flex>
+            ))
+          ) : (
+            <Typography.Text type='secondary'>Нет контрактов</Typography.Text>
+          )}
         </Flex>
       </Flex>
 
@@ -175,6 +249,42 @@ const Profile = () => {
                 </Flex>
               );
             })}
+        </Flex>
+      </Modal>
+
+      <Modal
+        title='Добавить контракт'
+        open={addModalOpen}
+        onOk={handleAddContract}
+        onCancel={() => {
+          setAddModalOpen(false);
+          setNewEssenceNumber(null);
+          setNewScreenshotLink('');
+        }}
+        okText='Добавить'
+        cancelText='Отмена'
+        confirmLoading={adding}
+        destroyOnHidden
+        style={{ border: '1px solid #0e5d5f', borderRadius: '10px' }}
+      >
+        <Flex vertical gap={10}>
+          <Flex vertical>
+            <Typography.Text>Номер эссенции</Typography.Text>
+            <InputNumber
+              min={1}
+              value={newEssenceNumber}
+              onChange={setNewEssenceNumber}
+              placeholder='Введите номер эссенции'
+            />
+          </Flex>
+          <Flex vertical>
+            <Typography.Text>Ссылка на скриншот</Typography.Text>
+            <Input
+              value={newScreenshotLink}
+              onChange={(e) => setNewScreenshotLink(e.target.value)}
+              placeholder='Введите ссылку на скриншот'
+            />
+          </Flex>
         </Flex>
       </Modal>
     </Flex>
