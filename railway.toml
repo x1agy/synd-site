@@ -1,0 +1,28 @@
+[services.frontend]
+buildCommand = "npm run build"
+buildPath = "."
+healthcheckPath = "/"
+healthcheckTimeout = 300
+restartPolicyMaxRetries = 10
+restartPolicyType = "ON_FAILURE"
+sourcePath = "."
+startCommand = "npm run preview"
+
+[services.backend]
+buildCommand = "npm install"
+buildPath = "server"
+healthcheckPath = "/api/health"
+healthcheckTimeout = 300
+restartPolicyMaxRetries = 10
+restartPolicyType = "ON_FAILURE"
+sourcePath = "server"
+startCommand = "npm start"
+
+[services.backend.variables]
+# Add your environment variables here
+# CONTRACTS_SHEET_ID = "your_sheet_id"
+# GOOGLE_API = "your_google_api_json"
+
+[services.frontend.variables]
+# Frontend environment variables if needed
+# VITE_API_URL = "https://backend-service-name.railway.app"
